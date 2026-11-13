@@ -3,6 +3,8 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/PedroHenrique0713/ultimate-claude-render/actions/workflows/ci.yml"><img alt="ci" src="https://github.com/PedroHenrique0713/ultimate-claude-render/actions/workflows/ci.yml/badge.svg"></a>
+  <img alt="licença" src="https://img.shields.io/badge/licen%C3%A7a-Apache--2.0-C6FF3D?style=flat-square&labelColor=0E1217">
   <img alt="node" src="https://img.shields.io/badge/node-%E2%89%A5%2020-C6FF3D?style=flat-square&labelColor=0E1217">
   <img alt="python" src="https://img.shields.io/badge/python-%E2%89%A5%203.10-C6FF3D?style=flat-square&labelColor=0E1217">
   <img alt="ffmpeg" src="https://img.shields.io/badge/ffmpeg-libx264-C6FF3D?style=flat-square&labelColor=0E1217">
@@ -50,7 +52,7 @@ Tudo que mexe na cena depende só de `t`. Por isso o vídeo é **determinístico
 Precisa de **Node ≥ 20**, **Python ≥ 3.10** e **ffmpeg** (com libx264).
 
 ```bash
-git clone <este-repo> ultimate-claude-render && cd ultimate-claude-render
+git clone https://github.com/PedroHenrique0713/ultimate-claude-render.git && cd ultimate-claude-render
 npm install                                  # gsap, three, playwright-core (copia para motor/vendor)
 python3 -m pip install -r requirements.txt   # numpy, scipy, pillow, edge-tts
 npx playwright-core install chromium         # o navegador do render
@@ -164,7 +166,7 @@ Esse é o relatório real do demo. Na primeira versão ele acusou 38% do vídeo 
 | Chromium | cache do Playwright ou `CHROME_PATH` | idem | idem |
 | WebGL (Three.js) | software; `RENDER_GPU=1` usa a placa (Vulkan) | software | software |
 
-Não há script `.sh` no caminho do render: o orquestrador é Node. O fluxo de `.github/workflows/ci.yml` roda `ucr doctor` e um render de fumaça (`exemplos/smoke`, sem voz) nos três sistemas; **ele ainda não rodou**, porque só roda depois do primeiro push. Até lá, só o Linux foi verificado de ponta a ponta. A renderização de texto muda um pouco entre sistemas (hinting): o vídeo é o mesmo, o pixel não é.
+Não há script `.sh` no caminho do render: o orquestrador é Node. O fluxo de `.github/workflows/ci.yml` roda `ucr doctor` e um render de fumaça (`exemplos/smoke`, sem voz) nos três sistemas; **ele ainda não rodou**, porque só roda depois do primeiro push. Até lá, só o Linux foi verificado de ponta a ponta (o selo de CI no topo mostra o resultado dos três). A renderização de texto muda um pouco entre sistemas (hinting): o vídeo é o mesmo, o pixel não é.
 
 ## Comandos
 
@@ -206,4 +208,8 @@ Cada pessoa mantém os próprios vídeos fora do repo (ou em `projetos/`, ignora
 
 [GSAP](https://gsap.com) (timeline), [Three.js](https://threejs.org), [Playwright](https://playwright.dev) (Chromium headless), [ffmpeg](https://ffmpeg.org), [Inter](https://rsms.me/inter/) (OFL), [edge-tts](https://github.com/rany2/edge-tts). O repo não redistribui GSAP nem Three: o `npm install` baixa e copia para `motor/vendor/`.
 
-Licença: a definir antes de tornar público.
+## Licença
+
+[Apache-2.0](LICENSE). As dependências (GSAP, Three.js, Playwright, ffmpeg, edge-tts) e a fonte Inter (OFL, em `marcas/*/fonts/OFL.txt`) têm licenças próprias.
+
+Projeto independente, sem vínculo com a Anthropic. Claude é marca da Anthropic.

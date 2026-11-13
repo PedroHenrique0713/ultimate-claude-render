@@ -4,7 +4,9 @@
   "description": "Vídeo feito de HTML animado: o Claude escreve a cena, o motor renderiza quadro a quadro com voz, trilha, efeitos e QA.",
   "type": "module",
   "private": true,
-  "bin": { "ucr": "bin/ucr.mjs" },
+  "bin": {
+    "ucr": "bin/ucr.mjs"
+  },
   "scripts": {
     "postinstall": "node scripts/vendor.mjs",
     "doctor": "node bin/ucr.mjs doctor",
@@ -15,5 +17,12 @@
     "playwright-core": "^1.55.0",
     "three": "^0.185.0"
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PedroHenrique0713/ultimate-claude-render.git"
+  }
 }
