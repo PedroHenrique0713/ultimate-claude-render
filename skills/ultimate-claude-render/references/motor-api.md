@@ -22,6 +22,7 @@ Tudo é função de `t` (segundos no vídeo final). A cena monta a timeline `M.t
 ## Fundo e texto
 
 - `M.fundo({ estrelas = true, auras = true, n = 260 })`: céu que deriva, auras da cor de destaque, vinheta. O grão de filme entra no ffmpeg (`render.acabamento`).
+- `M.camera({ rotY = 3, rotX = 1.4, periodoY = 5.2, periodoX = 7.4, zoom = 0, perspectiva = 2400 })`: a cena inteira (`#cena`) balança em 3D, com a perspectiva no próprio transform. Girar o `#cena` sem ela só o achata (~2 px). A legenda fica parada (está no `#palco`). Custa render: com ela e as auras animadas o demo passou de ≈ 8 para ≈ 14 min.
 - `M.marca({ nome, logo })`: logo + nome. Fica na zona segura (vertical: base).
 - `M.legendas(F, { de, ate, chaves: [], jaNaTela: 0, slam: false })`: blocos de até ~9 palavras que acendem palavra a palavra. `chaves` = começos de palavra que ganham a cor de destaque. `slam: true` = cada palavra bate (escala e assenta) e a chave dispara um clique.
 - `M.grande(texto, { t, fim, y, tam, cor, destaque: [] })`: frase grande, palavras entram em mola.
@@ -41,7 +42,7 @@ Tudo é função de `t` (segundos no vídeo final). A cena monta a timeline `M.t
 
 Ponha o arquivo em `midia/`, rode `ucr midia` e use o nome sem extensão.
 
-- `M.foto(pai, nome, { x, y, w, h, de, ate, zoom: [1, 1.1], deriva: [0, 0], raio, entrada, saida, sombra, z })`: preenche a caixa (cover), entra e sai suave, zoom e deriva lentos.
+- `M.foto(pai, nome, { x, y, w, h, de, ate, zoom: [1, 1.1], deriva: [0, 0], raio, entrada, saida, sombra, ajuste, z })`: preenche a caixa (cover), entra e sai suave, zoom e deriva lentos. PNG/WebP com transparência (logo, produto recortado) fica inteiro (`contain`), sem fundo nem sombra de cartão.
 - `M.video(pai, nome, { x, y, w, h, de, ate, inicio = 0, laco = false, som = false, ganho = 1, raio, entrada, saida, sombra, z })`: o clipe vira sequência de JPEG (trocar `src` custa ~10 ms; `<video>` custava 250–500 ms por quadro). `som: true` leva o áudio do arquivo para o mix no instante em que o clipe entra. `inicio` = segundo do arquivo onde começa.
 - `M.sequencia(pai, pasta, { de, ate, n, fps, inicio, modo: 'laco'|'vaivem'|'uma' })`: baixo nível (use quando já tem uma pasta `0001.jpg…`).
 

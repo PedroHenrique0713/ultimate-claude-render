@@ -41,7 +41,7 @@ Pasta de um projeto:
 
 Esqueleto: ver `exemplos/modelo-cena.html` do repo. A ordem dos `<script>` importa (GSAP → marca → projeto → tema → tempos → midia → batidas → motor). API completa em `references/motor-api.md`; resumo:
 
-- `M.fundo()`, `M.marca()`, `M.legendas(F, { chaves: [...] })`, `M.grande(texto, { t, fim })`
+- `M.fundo()`, `M.camera()`, `M.marca()`, `M.legendas(F, { chaves: [...] })`, `M.grande(texto, { t, fim })`
 - `M.celular(pai, {x,y,B})`, `M.janela(pai, {...})`, `M.terminal(pai, {linhas})`, `M.cursor/clicar/tocar`
 - `M.foto(pai, 'nome', {...})`, `M.video(pai, 'nome', { som: true })` (de `midia/`, depois de `ucr midia`)
 - `M.T('palavras')` = instante em que essas palavras são ditas. **Ancore tudo na fala**, não em segundos fixos: trocar uma frase do roteiro não desloca o resto da cena.
@@ -50,9 +50,9 @@ Esqueleto: ver `exemplos/modelo-cena.html` do repo. A ordem dos `<script>` impor
 Regras de ouro da cena:
 1. **Tudo depende só de `t`.** Tweens na timeline (`M.tl`), contadores e desenhos em `M.ATUALIZAR.push(t => ...)`. Nada de `setInterval`, `Date.now()`, `<video>` com `play()` ou CSS animation.
 2. **Zona segura da plataforma:** o QA acusa texto fora dela (vertical: 14% no topo e 25% na base).
-3. **Descanso leva deriva.** Nada parado por mais de ~1,5 s (o QA mede e o espectador pula).
+3. **Descanso leva deriva.** Nada parado por mais de ~1,5 s (o QA mede e o espectador pula). `M.camera()` balança a cena em 3D; cartão escuro sobre fundo escuro se mexe sem ninguém notar, então dê borda e brilho a ele.
 4. **Cada fala muda o quadro.** Frase nova, imagem nova ou movimento novo.
-5. **Antes de renderizar:** `node --check` no script da cena (variável repetida derruba tudo e o erro só aparece depois de ~90 s).
+5. **Antes de renderizar:** `ucr stills` em 3 ou 4 instantes. Erro de script (variável repetida, palavra fora da narração) aparece na hora com a mensagem da página.
 
 ## Áudio
 
@@ -72,7 +72,7 @@ Saídas: `saida/<nome>.mp4` (entrega, 22 Mb/s) e `saida/<nome> - leve.mp4` (30 f
 
 ## Quando algo dá errado
 
-- Cena não fica pronta (`A cena não ficou pronta`): quase sempre caminho de `<script>`/mídia errado ou erro de sintaxe; a mensagem lista os erros da página.
+- Cena não fica pronta (`A cena não ficou pronta`): erro de script (a mensagem traz o erro da página, na hora) ou, sem erro nenhum, caminho de `<script>`/mídia errado (aí espera o tempo-limite de 90 s).
 - Render lento: ver `references/armadilhas.md` (filter blur, backdrop-filter, blend em tela cheia, `<video>` na página).
 - Refazer só um trecho: `ucr render <pasta> --de 30 --ate 38` (reaproveita os pedaços do render anterior se os parâmetros forem os mesmos).
 - Antes de render longo: `df -h` (≈ 250 MB de pedaços e ≈ 145 MB de entrega por 45 s a 1080×1920).

@@ -72,17 +72,26 @@ function prep(P) {
   for (const f of ['motor.js', 'motor.css', 'tema.js']) fs.copyFileSync(path.join(MOTOR, f), path.join(u, f));
   if (!fs.existsSync(path.join(MOTOR, 'vendor', 'gsap.min.js'))) falha('motor/vendor/gsap.min.js não existe: rode "npm install" na pasta do repo');
   fs.cpSync(path.join(MOTOR, 'vendor'), path.join(u, 'vendor'), { recursive: true });
-  // marca: a pasta inteira (marca.json, fontes, logo) vai para .ucr/marca/ e os caminhos são reescritos
+  // marca: só os arquivos que o marca.json cita (logo, fontes, moldura) vão para .ucr/marca/ e os caminhos são reescritos.
+  // Copiar a pasta inteira falhava com marca.json na raiz do projeto (o Node recusa copiar a pasta para dentro dela mesma).
   const marcaArq = path.resolve(P.dir, P.cfg.marca || 'marca/marca.json');
   if (!fs.existsSync(marcaArq)) falha(`marca não encontrada: ${marcaArq} (projeto.json → "marca")`);
   const marcaDir = path.dirname(marcaArq);
-  fs.rmSync(path.join(u, 'marca'), { recursive: true, force: true });
-  fs.cpSync(marcaDir, path.join(u, 'marca'), { recursive: true });
+  const destMarca = path.join(u, 'marca');
+  fs.rmSync(destMarca, { recursive: true, force: true });
   const marca = JSON.parse(fs.readFileSync(marcaArq, 'utf8'));
-  const rel = (p) => (p ? '.ucr/marca/' + p.replace(/\\/g, '/') : p);
-  if (marca.logo) marca.logo = rel(marca.logo);
-  if (marca.celular?.moldura) marca.celular.moldura = rel(marca.celular.moldura);
-  if (marca.fonte?.arquivos) for (const k of Object.keys(marca.fonte.arquivos)) marca.fonte.arquivos[k] = rel(marca.fonte.arquivos[k]);
+  const levar = (rel) => {
+    if (!rel) return rel;
+    const src = path.resolve(marcaDir, rel);
+    if (!fs.existsSync(src)) falha(`marca: "${rel}" não existe (${src})`);
+    const seguro = path.isAbsolute(rel) || rel.replace(/\\/g, '/').split('/').includes('..') ? '_ext/' + path.basename(rel) : rel.replace(/\\/g, '/');
+    fs.mkdirSync(path.dirname(path.join(destMarca, seguro)), { recursive: true });
+    fs.copyFileSync(src, path.join(destMarca, seguro));
+    return '.ucr/marca/' + seguro;
+  };
+  if (marca.logo) marca.logo = levar(marca.logo);
+  if (marca.celular?.moldura) marca.celular.moldura = levar(marca.celular.moldura);
+  if (marca.fonte?.arquivos) for (const k of Object.keys(marca.fonte.arquivos)) marca.fonte.arquivos[k] = levar(marca.fonte.arquivos[k]);
   fs.writeFileSync(path.join(u, 'marca.js'), 'window.MARCA = ' + JSON.stringify(marca, null, 1) + ';\n');
   fs.writeFileSync(path.join(u, 'projeto.js'), 'window.PROJETO = ' + JSON.stringify({ nome: P.cfg.nome, formato: P.cfg.formato, zonas: P.cfg.zonas }) + ';\n');
   // stubs: a cena sempre carrega estes três arquivos; as etapas do pipeline os substituem pelos reais
@@ -152,6 +161,7 @@ function doctor() {
   import('../motor/chrome.mjs').then(({ caminhoDoChrome }) => {
     const c = caminhoDoChrome();
     c ? ok('Chromium', c) : nao('Chromium', 'npx playwright-core install chromium  (ou CHROME_PATH=/caminho/do/chrome)');
+  }, () => nao('playwright-core', 'rode "npm install" na pasta do repo')).then(() => {
     console.log('\nucr doctor\n' + linhas.join('\n') + '\n' + (ruim ? `\n${ruim} item(ns) para resolver.` : '\nTudo pronto.'));
     process.exit(ruim ? 1 : 0);
   });
@@ -170,7 +180,7 @@ function novo(pasta) {
   fs.mkdirSync(path.join(dir, 'midia'), { recursive: true });
   fs.cpSync(marca, path.join(dir, 'marca'), { recursive: true });
   const nome = String(flags.nome || path.basename(dir));
-  const cfg = { nome: nome.replace(/[\\/:*?"<>|]/g, '-'), formato, fps: 60, marca: 'marca/marca.json',
+  const cfg = { nome: nome.replace(/[\\/:*?"<>|]/g, '-'), formato, fps: 30, marca: 'marca/marca.json',
     voz: { provedor: 'edge', voz: 'pt-BR-FranciscaNeural' }, inicio: 1.0, cauda: 3, respiros: {},
     mix: { trilha: 'sintetica', bpm: 112, lufs: -14 }, render: { dsf: 1.5, mb: 4 } };
   fs.writeFileSync(path.join(dir, 'projeto.json'), JSON.stringify(cfg, null, 2) + '\n');
@@ -197,7 +207,8 @@ switch (cmd) {
   case 'instalar-skill': instalarSkill(); break;
   case 'filmar': if (pos.length < 2) falha('uso: ucr filmar <plano.json> <pasta-de-saida> [ids]'); rodar(process.execPath, [path.join(MOTOR, 'filmar.mjs'), ...pos]); break;
   case 'prep': prep(carregar(pos[0])); break;
-  case 'stills': { const P = carregar(pos[0]); prep(P); if (!pos[1]) falha('uso: ucr stills <pasta> 2,8.5,15'); nodeRender([P.cena, 'stills', pos[1], '--w', String(P.W), '--h', String(P.H), '--out', path.join(P.saida, 'stills')]); console.log('quadros em ' + path.join(P.saida, 'stills')); break; }
+  case 'stills': { const P = carregar(pos[0]); prep(P); if (!pos[1]) falha('uso: ucr stills <pasta> 2,8.5,15');
+    if (P.cfg.voz && !fs.existsSync(path.join(P.build, 'tempos.js')) || (P.cfg.voz && /frases: \[\]/.test(fs.readFileSync(path.join(P.build, 'tempos.js'), 'utf8')))) console.log('aviso: a narração ainda não foi gerada; rode "ucr voz" e "ucr tempos" (ou "ucr tudo") para a cena ter os tempos da fala'); nodeRender([P.cena, 'stills', pos[1], '--w', String(P.W), '--h', String(P.H), '--out', path.join(P.saida, 'stills')]); console.log('quadros em ' + path.join(P.saida, 'stills')); break; }
   case 'preview': {
     const P = carregar(pos[0]); prep(P);
     let url = pathToFileURL(P.cena).href;

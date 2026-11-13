@@ -30,7 +30,7 @@ body { font-family: var(--fonte, 'Inter'), system-ui, sans-serif; color: var(--t
 
 /* vidro, pílulas, selos */
 .vidro { background: var(--vidro); border: 1px solid var(--linha);
-         box-shadow: 0 30px 80px -20px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.06); }
+         box-shadow: 0 30px 80px -20px rgba(0,0,0,.75), 0 0 90px -10px var(--destaque-fraco), inset 0 1px 0 rgba(255,255,255,.08); }
 .pilula { position: absolute; display: flex; align-items: center; gap: 16px; height: 76px; padding: 0 30px 0 22px; border-radius: 99px; font-weight: 600; font-size: 31px;
           letter-spacing: -.015em; white-space: nowrap; opacity: 0; z-index: 50; }
 .pilula .ic { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--destaque-fraco); color: var(--destaque); flex: none; }
@@ -75,8 +75,8 @@ body { font-family: var(--fonte, 'Inter'), system-ui, sans-serif; color: var(--t
                   background: linear-gradient(125deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,0) 28%); }
 
 /* terminal (M.terminal) */
-.terminal { position: absolute; border-radius: 22px; overflow: hidden; background: #0E0F12; border: 1px solid rgba(255,255,255,.1);
-            box-shadow: 0 90px 150px -40px rgba(0,0,0,.95), 0 0 0 1px rgba(0,0,0,.5); font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', ui-monospace, monospace; }
+.terminal { position: absolute; border-radius: 22px; overflow: hidden; background: #15181D; border: 1px solid rgba(255,255,255,.16);
+            box-shadow: 0 90px 150px -40px rgba(0,0,0,.95), 0 0 90px -10px var(--destaque-fraco), inset 0 1px 0 rgba(255,255,255,.08); font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', ui-monospace, monospace; }
 .terminal .barra { height: 54px; background: #1A1C21; border-bottom: 1px solid rgba(255,255,255,.07); position: relative; }
 .terminal .barra i { position: absolute; top: 20px; width: 14px; height: 14px; border-radius: 50%; }
 .terminal .barra b { position: absolute; left: 0; right: 0; top: 0; line-height: 54px; text-align: center; font-weight: 500; font-size: 22px; color: rgba(255,255,255,.45); font-family: var(--fonte), system-ui, sans-serif; }

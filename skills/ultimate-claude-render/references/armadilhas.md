@@ -21,6 +21,10 @@ Cada item custou horas num vídeo real. Organizado por tema; leia o tema do prob
 
 ## Cena que não renderiza como você esperava
 
+- **Girar o `#cena` não dá 3D:** a `perspective` do `#cena` vale para os filhos; a rotação do próprio `#cena` é aplicada depois dela e só achata a cena (±3° deram ~2 px). Use `M.camera()`, que põe `transformPerspective` no transform do próprio elemento.
+- **Movimento que o olho não vê:** cartão quase preto (`#0E0F12`) sobre fundo quase preto balançando ±5° mudou 1,6 nível de cinza em 1,5 s; o QA reprova abaixo de 3, e com razão. Com borda clara, brilho da cor de destaque e auras que passeiam, o mesmo trecho foi a 2,8–3,8. Dê contraste ao que se mexe.
+- **Erro de script some no tempo-limite:** o `SyntaxError` de um `<script>` embutido dispara durante o carregamento da página; um ouvinte criado depois do `goto` não o vê, e o render esperava 90 s para dizer "não ficou pronta". O `render.mjs` cria o ouvinte antes do `goto` e cai em ~1 s.
+
 - **`tl.set(..., 0)` em t = 0 não renderiza no `seek(0)`:** o primeiro take precisa de `gsap.set` direto, senão o quadro 0 sai vazio. Padrão seguro: `tl.set(e, {opacity:0}, 0)` + `fromTo(..., { immediateRender: false })`.
 - **`preserve-3d`:** `z-index` não vale (o que precisa ficar na frente ganha `translateZ`; um celular girado passou na frente de um cartão com z-index maior). `filter` no elemento com `preserve-3d` achata o 3D e o verso da carta aparece espelhado: o filtro vai na face, nunca no giro. Camadas planas: classe `.plano` (`transform-style: flat`).
 - **Variável repetida na cena** (`const selo` duas vezes) derruba tudo e o render leva ~90 s para dizer. `node --check` no script extraído do HTML antes.
@@ -29,7 +33,6 @@ Cada item custou horas num vídeo real. Organizado por tema; leia o tema do prob
 - **Transição em shader que lê o `<img>` da sequência:** desenhar no `ATUALIZAR` pega o quadro ANTERIOR (o motor troca o `src` depois). Embrulhe `window.__seek` logo depois do `M.iniciar` e desenhe no fim; a janela da sequência precisa passar ~0,2 s do corte para os dois quadros estarem decodificados.
 - **Sequência de quadros dentro de um cartão que já tem `<img>`:** passe `estilo: { position: 'absolute', left: 0, top: 0 }`; o CSS do cartão dá `display: block` e a segunda imagem cai para fora.
 - **Classe nova com nome já usado no CSS** (`.lic`) herda regras que você não escreveu. Prefixe.
-- **`gsap.to(elemento, { className })`** não reverte bem ao buscar para trás (`stills` pula de um instante a outro): anime cores/estilos, não classes.
 - **Fonte não carregada:** o primeiro quadro sai com a fonte do sistema. O motor espera `document.fonts.ready`; se a fonte nunca aparece, confira o caminho no `marca.json`.
 
 ## Legenda

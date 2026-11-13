@@ -12,9 +12,9 @@
   .chip b { display: block; font-weight: 700; font-size: 40px; letter-spacing: -.03em; }
   .chip small { display: block; margin-top: 6px; font-size: 19px; font-weight: 500; color: var(--apagado); font-variant-numeric: tabular-nums; }
   /* mixer */
-  #mix-card { position: absolute; left: 90px; top: 690px; width: 900px; height: 560px; border-radius: 30px; opacity: 0; overflow: hidden; }
+  #mix-card { position: absolute; left: 90px; top: 660px; width: 900px; height: 560px; border-radius: 30px; opacity: 0; overflow: hidden; }
   #mix-card canvas { position: absolute; left: 0; top: 0; }
-  #lufs { position: absolute; left: 0; right: 0; top: 1290px; text-align: center; font-weight: 800; font-size: 120px; letter-spacing: -.05em; font-variant-numeric: tabular-nums; opacity: 0; }
+  #lufs { position: absolute; left: 0; right: 0; top: 1240px; text-align: center; font-weight: 800; font-size: 112px; letter-spacing: -.05em; font-variant-numeric: tabular-nums; opacity: 0; }
   #lufs small { font-size: 46px; font-weight: 600; letter-spacing: .02em; color: var(--apagado); margin-left: 14px; }
   /* plataformas */
   #plat { position: absolute; left: 0; right: 0; top: 790px; display: flex; justify-content: center; gap: 22px; }
@@ -190,7 +190,7 @@
     const t = M.T(palavra);
     tl.fromTo(p, { opacity: 0, y: 40, scale: .85 }, { opacity: 1, y: 0, scale: 1, duration: .4, ease: 'back.out(2)', immediateRender: false }, t - .05);
     M.som(t - .05, 'pop', .6);
-    tl.to(p, { opacity: 0, y: -30, duration: .3, ease: 'power2.in' }, b(13) + .25);
+    tl.to(p, { opacity: 0, y: -30, duration: .25, ease: 'power2.in' }, a(14) - .4);   // saem antes de o marca.json entrar
   });
   const T3 = M.terminal(cena, { x: 90, y: 700, largura: 900, altura: 470, titulo: 'marca.json', som: false, cursor: false, linhas: [
     { t: a(14), texto: '{', classe: 'ap' },
@@ -200,7 +200,7 @@
     { t: a(14) + .7, texto: '  "logo": "logo.svg"', classe: 'ap' },
     { t: a(14) + .85, texto: '}', classe: 'ap' },
   ] });
-  entrar(T3.e, a(14) - .25); M.som(bat(a(14) - .25), 'whoosh', .6);
+  entrar(T3.e, a(14) - .1); M.som(bat(a(14) - .1), 'whoosh', .6);
   sair(T3.e, b(14) - .05, { dur: .3 });
   // a paleta troca de verdade: a variável CSS --destaque é animada e tudo que a usa acompanha
   const raiz = document.documentElement;
@@ -230,9 +230,7 @@
   tl.to(h1, { y: -8, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: 3 }, tf + 1.1);
   M.som(tf + .05, 'grave', .9); M.som(tf + .05, 'brilho', .6);
 
-  // câmera: a cena inteira balança em 3D (nada fica parado, e é o que dá profundidade aos cartões)
-  tl.fromTo(cena, { rotationY: -3.2 }, { rotationY: 3.2, duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: Math.ceil(TEMPOS.total / 2.6), immediateRender: false }, 0);
-  tl.fromTo(cena, { rotationX: 1.5 }, { rotationX: -1.5, duration: 3.7, ease: 'sine.inOut', yoyo: true, repeat: Math.ceil(TEMPOS.total / 3.7), immediateRender: false }, 0);
+  M.camera({ rotY: 5, rotX: 2.2, periodoY: 4.4, periodoX: 6.2, zoom: .05 });   // a cena inteira balança em 3D: nada fica parado e os cartões ganham profundidade
 
   M.legendas(F, { de: 0, ate: F.length - 2, chaves: ['html', 'voz', 'legenda', 'foto', 'vídeo', 'som', 'telas', 'trilha', 'lufs', 'marca', 'linux', 'mac', 'windows', 'qualquer'] });
   await M.iniciar(TEMPOS.total);

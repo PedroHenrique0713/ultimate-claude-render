@@ -7,6 +7,7 @@ for _f in (sys.stdout, sys.stderr):   # Windows: o console padrão é cp1252 e q
     except Exception: pass
 
 SR = 48000
+_PASTA = None
 AQUI = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(AQUI)
 
@@ -18,7 +19,10 @@ def projeto(pasta):
     if not os.path.exists(arq):
         sys.exit(f'projeto.json não existe em {pasta} (crie o projeto com: ucr novo <pasta>)')
     cfg = json.load(open(arq, encoding='utf-8'))
+    global _PASTA
+    _PASTA = pasta
     cfg.setdefault('formato', 'vertical')
+    cfg.setdefault('teto_usd', 5.0)   # serviço pago para em US$ 5 por projeto se ninguém disser outro valor
     cfg.setdefault('fps', 60)
     cfg.setdefault('inicio', 1.2)
     cfg.setdefault('cauda', 3.0)
@@ -59,8 +63,8 @@ def chave(nome, *arquivos):
         a = os.path.expanduser(a)
         if os.path.exists(a):
             return open(a).read().strip().split('\n')[0].strip()
-    # .env do projeto ou do repo
-    for base in (os.getcwd(), REPO):
+    # .env do projeto, da pasta atual ou do repo
+    for base in dict.fromkeys(b for b in (_PASTA, os.getcwd(), REPO) if b):
         env = os.path.join(base, '.env')
         if os.path.exists(env):
             for l in open(env, encoding='utf-8'):

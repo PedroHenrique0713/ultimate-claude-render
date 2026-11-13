@@ -101,24 +101,34 @@ def _http_json(url, corpo, cab, timeout=300):
         sys.exit(f'{url.split("/")[2]} respondeu {e.code}: {e.read().decode()[:600]}')
 
 
+def _pago(livro, preco, servico, chamar):
+    """Debita antes de chamar (estourou o teto, nada é chamado) e estorna se a chamada falhar."""
+    livro.debitar(preco, servico, 'narracao')
+    try:
+        return chamar()
+    except BaseException:
+        livro.estornar(servico, 'narracao')
+        raise
+
+
 def elevenlabs(texto, cfg, destino, livro):
     k = chave('ELEVENLABS_API_KEY')
     voice = cfg.get('voz') or sys.exit('voz.voz: informe o voice_id da ElevenLabs')
-    livro.debitar(round(len(texto) / 1000 * cfg.get('preco_mil_caracteres', 0.20), 4), 'elevenlabs', 'narracao')
-    r = _http_json(f'https://api.elevenlabs.io/v1/text-to-speech/{voice}/with-timestamps?output_format=mp3_44100_128',
-                   {'text': texto, 'model_id': cfg.get('modelo', 'eleven_multilingual_v2'), 'language_code': cfg.get('idioma', 'pt'),
-                    'voice_settings': {'stability': cfg.get('estabilidade', .5)}}, {'xi-api-key': k})
+    corpo = {'text': texto, 'model_id': cfg.get('modelo', 'eleven_multilingual_v2'), 'voice_settings': {'stability': cfg.get('estabilidade', .5)}}
+    if cfg.get('idioma'): corpo['language_code'] = cfg['idioma']   # só os modelos Turbo/Flash aceitam; os outros devolvem erro
+    r = _pago(livro, round(len(texto) / 1000 * cfg.get('preco_mil_caracteres', 0.20), 4), 'elevenlabs', lambda: _http_json(
+        f'https://api.elevenlabs.io/v1/text-to-speech/{voice}/with-timestamps?output_format=mp3_44100_128', corpo, {'xi-api-key': k}))
     open(destino, 'wb').write(base64.b64decode(r['audio_base64']))
-    al = r.get('normalized_alignment') or r['alignment']
+    al = r.get('alignment') or r['normalized_alignment']   # alignment = o texto como foi escrito (o normalized troca número por extenso)
     return palavras_de_caracteres(al['characters'], al['character_start_times_seconds'], al['character_end_times_seconds'])
 
 
 def fal(texto, cfg, destino, livro):
     k = chave('FAL_KEY')
-    livro.debitar(round(len(texto) / 1000 * cfg.get('preco_mil_caracteres', 0.10), 4), 'fal/elevenlabs-v3', 'narracao')
-    r = _http_json('https://fal.run/fal-ai/elevenlabs/tts/eleven-v3',
-                   {'text': texto, 'voice': cfg.get('voz', 'Sarah'), 'language_code': cfg.get('idioma', 'pt'), 'stability': cfg.get('estabilidade', .5), 'timestamps': True},
-                   {'Authorization': f'Key {k}'})
+    r = _pago(livro, round(len(texto) / 1000 * cfg.get('preco_mil_caracteres', 0.10), 4), 'fal/elevenlabs-v3', lambda: _http_json(
+        'https://fal.run/fal-ai/elevenlabs/tts/eleven-v3',
+        {'text': texto, 'voice': cfg.get('voz', 'Sarah'), 'language_code': cfg.get('idioma', 'pt'), 'stability': cfg.get('estabilidade', .5), 'timestamps': True},
+        {'Authorization': f'Key {k}'}))
     urllib.request.urlretrieve(r['audio']['url'], destino)
     chars, ini, fim = [], [], []
     for bl in r['timestamps']:
@@ -127,7 +137,7 @@ def fal(texto, cfg, destino, livro):
 
 
 def arquivo(texto, cfg, destino, pasta):
-    import shutil, subprocess
+    import subprocess
     origem = os.path.join(pasta, cfg['arquivo'])
     k = chave('DEEPGRAM_API_KEY')
     subprocess.check_call(['ffmpeg', '-v', 'error', '-y', '-i', origem, '-codec:a', 'libmp3lame', '-b:a', '192k', destino])

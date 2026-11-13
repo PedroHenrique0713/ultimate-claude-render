@@ -47,14 +47,16 @@ def main(pasta):
             ext = os.path.splitext(f)[1].lower()
             nome = nome_de(f)
             if ext in FOTOS:
-                dest = build(pasta, 'foto', nome + '.jpg')
                 j, v, _ = sonda(f)
-                w, h = v['width'], v['height']
+                alfa = ext in ('.png', '.webp') and any(x in v.get('pix_fmt', '') for x in ('rgba', 'ya', 'bgra', 'argb', 'abgr', 'yuva', 'pal8'))
+                saida_ext = '.png' if alfa else '.jpg'   # JPEG trocaria o transparente por preto (logo, recorte de produto)
+                dest = build(pasta, 'foto', nome + saida_ext)
                 if not mais_novo(dest, f):
-                    subprocess.check_call(['ffmpeg', '-v', 'error', '-y', '-i', f, '-vf', f"scale='min({LADO_FOTO},iw)':'min({LADO_FOTO},ih)':force_original_aspect_ratio=decrease:flags=lanczos", '-q:v', '2', dest])
+                    subprocess.check_call(['ffmpeg', '-v', 'error', '-y', '-i', f, '-vf', f"scale='min({LADO_FOTO},iw)':'min({LADO_FOTO},ih)':force_original_aspect_ratio=decrease:flags=lanczos",
+                                           *(['-pix_fmt', 'rgba'] if alfa else ['-q:v', '2']), dest])
                     print('foto  ', nome)
                 sw, sh = map(int, subprocess.check_output(['ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0:s=x', dest]).decode().strip().split('x'))
-                manifesto[nome] = {'tipo': 'foto', 'src': f'build/foto/{nome}.jpg', 'w': sw, 'h': sh}
+                manifesto[nome] = {'tipo': 'foto', 'src': f'build/foto/{nome}{saida_ext}', 'w': sw, 'h': sh, 'alfa': alfa}
             elif ext in VIDEOS:
                 j, v, a = sonda(f)
                 num, den = map(int, v['r_frame_rate'].split('/'))

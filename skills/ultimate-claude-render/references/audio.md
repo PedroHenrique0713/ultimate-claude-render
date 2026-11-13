@@ -13,7 +13,7 @@ Uma saída só, qualquer provedor: `build/audio/narracao.mp3` + `build/audio/fra
 | `fal` | `FAL_KEY` | ElevenLabs v3 pelo fal; `voz` = nome ("Sarah", "Brian") |
 | `arquivo` | `DEEPGRAM_API_KEY` | Você gravou (`"arquivo": "midia/voz.m4a"`). Tempos pela Deepgram `nova-3`; o **texto da tela é o do `narracao.txt`** (pareado por alinhamento; palavra sem par ganha tempo interpolado) |
 
-Chaves: variável de ambiente ou linha `NOME=valor` em um `.env` na pasta do projeto ou do repo. Nunca no código, nunca no `projeto.json`. Serviço pago passa pelo livro `gasto.json` com `"teto_usd"` no projeto: estourou o teto, nada é chamado.
+Chaves: variável de ambiente ou linha `NOME=valor` em um `.env` na pasta do projeto ou do repo. Nunca no código, nunca no `projeto.json`. Serviço pago passa pelo livro `gasto.json` com `"teto_usd"` no projeto (padrão: US$ 5): estourou o teto, nada é chamado; chamada que falha é estornada.
 
 **Texto falado ≠ texto escrito.** Escreva como se fala: número por extenso quando a pronúncia importa ("menos catorze LUFS"), sigla que se soletra com ponto ou espaço, nome estrangeiro como se pronuncia. Teste a voz com a frase difícil antes de gastar no roteiro inteiro.
 

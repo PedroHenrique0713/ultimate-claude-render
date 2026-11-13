@@ -2,7 +2,7 @@
 // (render.mjs) pede cada quadro por window.__seek(t). Tudo que mexe tem de depender só de t: tweens na timeline,
 // fundo e contadores desenhados por t (M.ATUALIZAR), vídeo como sequência de quadros trocada por t.
 //
-// Peças: fundo, marca, legendas, grande, celular, janela, terminal, foto, video, recorte, cursor, clicar, tocar, luz, som, T, batida, iniciar.
+// Peças: fundo, camera, marca, legendas, grande, celular, janela, terminal, foto, video, recorte, cursor, clicar, tocar, luz, som, T, batida, iniciar.
 // Cores, fonte e formato vêm do tema.js (marca.json + projeto.json); nada aqui é de uma marca.
 window.M = (() => {
   const $ = (s, r = document) => r.querySelector(s);
@@ -89,8 +89,10 @@ window.M = (() => {
       }
       if (auras) {
         const k = W / 1080;
-        $('#aura-a').style.transform = `translate(${(-140 + 110 * Math.sin(t * .21)) * k}px, ${(420 + 160 * Math.cos(t * .17)) * (H / 1920)}px)`;
-        $('#aura-b').style.transform = `translate(${(560 + 90 * Math.cos(t * .19)) * k}px, ${(1120 + 150 * Math.sin(t * .13)) * (H / 1920)}px)`;
+        // as auras respiram e passeiam: é a luz que mexe no quadro inteiro quando o primeiro plano descansa
+        const ra = 1 + .12 * Math.sin(t * .9), rb = 1 + .14 * Math.cos(t * .7);
+        $('#aura-a').style.transform = `translate(${(-140 + 220 * Math.sin(t * .33)) * k}px, ${(420 + 260 * Math.cos(t * .27)) * (H / 1920)}px) scale(${ra})`;
+        $('#aura-b').style.transform = `translate(${(560 + 180 * Math.cos(t * .31)) * k}px, ${(1120 + 240 * Math.sin(t * .23)) * (H / 1920)}px) scale(${rb})`;
       }
     });
   }
@@ -277,6 +279,15 @@ window.M = (() => {
     tl.to(cel.dedo, { opacity: 0, scale: 1.2, duration: .25, ease: 'power2.in' }, t + .12);
   }
 
+  // ── câmera: a cena inteira balança em 3D, para nada ficar parado (o QA reprova composição parada por 1,5 s) ──
+  // A perspectiva vai no transform do próprio #cena (transformPerspective): sem ela, girar o #cena só o achata.
+  function camera({ rotY = 3, rotX = 1.4, periodoY = 5.2, periodoX = 7.4, zoom = 0, perspectiva = 2400, ate = window.TEMPOS?.total || 60 } = {}) {
+    gsap.set(cena, { transformPerspective: perspectiva, transformOrigin: '50% 50%' });
+    if (rotY) tl.fromTo(cena, { rotationY: -rotY }, { rotationY: rotY, duration: periodoY / 2, ease: 'sine.inOut', yoyo: true, repeat: Math.ceil(ate / (periodoY / 2)), immediateRender: false }, 0);
+    if (rotX) tl.fromTo(cena, { rotationX: rotX }, { rotationX: -rotX, duration: periodoX / 2, ease: 'sine.inOut', yoyo: true, repeat: Math.ceil(ate / (periodoX / 2)), immediateRender: false }, 0);
+    if (zoom) tl.fromTo(cena, { scale: 1 }, { scale: 1 + zoom, duration: ate, ease: 'none', immediateRender: false }, 0);
+  }
+
   // ── mídia inserida: foto e vídeo ──
   // O `ucr midia` converte cada arquivo de midia/ e escreve o manifesto window.MIDIA (midia/midia.js):
   //   foto  → { tipo: 'foto', src, w, h }
@@ -287,11 +298,14 @@ window.M = (() => {
     return m;
   };
 
-  // foto com entrada e saída suaves e movimento lento de câmera (zoom e deriva). Preenche a caixa (cover).
-  function foto(pai, nome, { x = 0, y = 0, w = W, h = H, de = 0, ate, zoom = [1, 1.1], deriva = [0, 0], raio = 0, entrada = .45, saida = .35, sombra = true, z } = {}) {
+  // foto com entrada e saída suaves e movimento lento de câmera (zoom e deriva). Preenche a caixa (cover);
+  // PNG com transparência (logo, produto recortado) fica inteiro (contain), sem fundo nem sombra de cartão.
+  function foto(pai, nome, { x = 0, y = 0, w = W, h = H, de = 0, ate, zoom = [1, 1.1], deriva = [0, 0], raio = 0, entrada = .45, saida = .35, sombra, ajuste, z } = {}) {
     const m = manifesto(nome);
-    const caixa = el('div', 'midia', { left: px(x), top: px(y), width: px(w), height: px(h), borderRadius: px(raio), opacity: 0, boxShadow: sombra ? '' : 'none', zIndex: z ?? '' }, pai);
-    const img = el('img', '', {}, caixa); img.src = m.src;
+    const cartao = !m.alfa;
+    const caixa = el('div', 'midia', { left: px(x), top: px(y), width: px(w), height: px(h), borderRadius: px(raio), opacity: 0, zIndex: z ?? '',
+      boxShadow: (sombra ?? cartao) ? '' : 'none', background: cartao ? '' : 'transparent' }, pai);
+    const img = el('img', '', { objectFit: ajuste || (cartao ? 'cover' : 'contain') }, caixa); img.src = m.src;
     const fim = ate ?? de + 4;
     tl.set(caixa, { opacity: 0 }, 0);
     tl.fromTo(caixa, { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: entrada, ease: 'power2.out', immediateRender: false }, de);
@@ -382,6 +396,6 @@ window.M = (() => {
     return d;
   }
 
-  return { $, el, px, W, H, palco, cena, tl, ATUALIZAR, som, borrao, fala, T, batida, luz, recorte, fundo, marca, palavras, legendas, grande,
+  return { $, el, px, W, H, palco, cena, tl, ATUALIZAR, som, borrao, fala, T, batida, luz, recorte, fundo, marca, palavras, legendas, grande, camera,
            celular, iphone: celular, janela, terminal, cursor, clicar, tocar, foto, video, sequencia, iniciar };
 })();

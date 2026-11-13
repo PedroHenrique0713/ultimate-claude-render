@@ -26,11 +26,16 @@ const cdp = await page.context().newCDPSession(page);
 // captura em JPEG pelo protocolo, no modo rápido: o PNG do page.screenshot custa caro por quadro
 const capturar = async () => Buffer.from((await cdp.send('Page.captureScreenshot', { format: 'jpeg', quality: 94, optimizeForSpeed: true })).data, 'base64');
 const erros = [];
-page.on('pageerror', (e) => erros.push(String(e)));
+// erro de script (sintaxe, variável repetida, palavra fora da narração) derruba na hora, sem esperar o tempo-limite.
+// A promessa nasce antes do goto: o SyntaxError do script embutido dispara durante o carregamento.
+let derrubar;
+const erroDePagina = new Promise((_, rej) => { derrubar = rej; });
+erroDePagina.catch(() => {});
+page.on('pageerror', (e) => { erros.push(String(e)); derrubar(e); });
 page.on('console', (m) => { if (m.type() === 'error') erros.push(m.text()); });
 await page.goto(pathToFileURL(path.resolve(cena)).href);
 try {
-  await page.waitForFunction(() => window.__ready === true, null, { timeout: 90000 });
+  await Promise.race([page.waitForFunction(() => window.__ready === true, null, { timeout: 90000 }), erroDePagina]);
 } catch (e) {
   console.error('A cena não ficou pronta:\n' + (erros.join('\n') || '(sem erro de página: confira os caminhos dos scripts e das mídias na cena)'));
   await browser.close();

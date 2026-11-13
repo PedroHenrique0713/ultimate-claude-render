@@ -65,7 +65,7 @@ node bin/ucr.mjs tudo meu-video                   # voz, trilha, efeitos, render
 
 Quer o comando `ucr` direto no terminal? `npm link` na pasta do repo. Nos exemplos abaixo, `ucr` = `node bin/ucr.mjs`.
 
-Quer ver o demo inteiro sendo gerado? `ucr tudo exemplos/demo` (≈ 8 min num notebook de 8 núcleos, sem placa de vídeo dedicada).
+Quer ver o demo inteiro sendo gerado? `ucr tudo exemplos/demo` (≈ 14 min numa máquina de 8 núcleos com vídeo integrado, render em software).
 
 ## Com o Claude Code
 
@@ -77,7 +77,7 @@ Depois é só pedir:
 
 > Faz um vídeo vertical de 40 segundos do lançamento do meu app. A marca está em `~/marcas/acme/`. Tenho uma foto do produto e uma gravação de tela.
 
-A skill (`skills/ultimate-claude-render/`) leva o Claude pelo caminho certo: **roteiro → quadros de estilo → prévia → render final**, com a marca existente, o QA e as armadilhas já medidas (`references/armadilhas.md`). Outros agentes que leem `SKILL.md` (Codex, OpenCode) usam o mesmo arquivo.
+A skill (`skills/ultimate-claude-render/`) leva o Claude pelo caminho certo: **roteiro → quadros de estilo → prévia → render final**, com a marca existente, o QA e as armadilhas já medidas (`references/armadilhas.md`). Outro agente que leia `SKILL.md` (Codex, OpenCode) pode usar o mesmo arquivo.
 
 ## Sua marca, em um arquivo
 
@@ -100,6 +100,7 @@ O resto da paleta (vidro, linhas, auras, texto sobre o destaque) é derivado. Tr
 | Legenda que acende palavra por palavra | `M.legendas(F, { chaves: ['voz'] })` |
 | Âncora na fala (não em segundos fixos) | `M.T('sua coleção')` |
 | Frase grande em mola | `M.grande('Qualquer vídeo.', { t, fim })` |
+| Câmera que nunca para (3D) | `M.camera()` |
 | **Foto** no meio | `M.foto(M.cena, 'produto', { de, ate, zoom: [1, 1.12] })` |
 | **Vídeo** no meio, com o som | `M.video(M.cena, 'depoimento', { de, ate, som: true })` |
 | Tela real no celular ou na janela | `M.celular(...)`, `M.janela(...)` + `ucr filmar` |
@@ -132,7 +133,7 @@ O vídeo vira sequência de JPEG antes do render: o `<video>` do navegador custa
 | **Trilha** | sua música (`midia/trilha.mp3`) ou a sintetizada; abaixa sozinha sob a voz |
 | **Efeitos** | 10 sintetizados e originais; pastas em `midia/sfx/` têm prioridade |
 | **Master** | −14 LUFS e −1,5 dBTP, duas passadas, uma vez só no master |
-| **Gasto** | serviço pago passa por um livro com teto em US$ (`"teto_usd"`); estourou, nada é chamado |
+| **Gasto** | serviço pago passa por um livro com teto em US$ (`"teto_usd"`, padrão 5); estourou, nada é chamado; falhou, é estornado |
 
 Chaves vão em variável de ambiente ou `.env`, nunca no código. Licença: a trilha e os efeitos têm de ter licença comercial se o vídeo for anúncio (os sintetizados têm). O provedor `edge` não libera uso comercial. Detalhes: [`references/audio.md`](skills/ultimate-claude-render/references/audio.md).
 
@@ -142,10 +143,16 @@ Todo render termina com um relatório em `saida/<nome> - QA.txt`:
 
 ```
 QA · ultimate-claude-render-demo.mp4
-{{QA}}
+  ok   1080x1920, 30 fps, 49.06 s, 22.6 Mb/s, 138.5 MB
+  ok   cor: yuv420p, faixa limitada, BT.709 marcado
+  [!]  7 trecho(s) com a composição parada por 1.5 s ou mais (4% do vídeo): 0.9–2.6 s, 3.4–5.5 s, …
+  ok   nenhum trecho preto
+  ok   loudness -14.0 LUFS (alvo -14), pico verdadeiro -1.5 dBTP
+  ok   todo texto dentro da zona segura
+  → 1 ponto(s) para olhar
 ```
 
-Ele mede o que é medível (formato, cor marcada, quadro parado, trecho preto, loudness, pico, texto fora da zona segura da plataforma). **Não é aprovação:** o relatório diz onde olhar e quem aprova é você, vendo o vídeo.
+Esse é o relatório real do demo. Na primeira versão ele acusou 38% do vídeo parado e o contador de LUFS entrando na zona da base; a cena foi corrigida até sobrar 4% de trechos calmos (o vídeo aprovado que serviu de referência tinha 5%). Ele mede o que é medível (formato, cor marcada, quadro parado, trecho preto, loudness, pico, texto fora da zona segura da plataforma). **Não é aprovação:** o relatório diz onde olhar e quem aprova é você, vendo o vídeo.
 
 ## Linux, macOS e Windows
 
@@ -190,7 +197,7 @@ Cada pessoa mantém os próprios vídeos fora do repo (ou em `projetos/`, ignora
 
 ## Limites conhecidos
 
-- **Render é lento por natureza:** o Chromium headless compõe em software. Um vídeo de 49 s a 1080×1920, 30 fps, supersampling 1,5 e borrão de movimento levou ≈ 8 min num notebook de 8 núcleos. Rascunho: `ucr render <pasta> --fps 30 --dsf 1 --mb 1` (bem mais rápido).
+- **Render é lento por natureza:** o Chromium headless compõe em software. O demo (49 s a 1080×1920, 30 fps, supersampling 1,5, borrão de movimento) levou ≈ 14 min numa máquina de 8 núcleos. A câmera 3D e as auras animadas custam: o mesmo demo levava ≈ 8 min sem elas. Rascunho: `ucr render <pasta> --dsf 1 --mb 1` (bem mais rápido); refazer só um trecho: `--de 26 --ate 34`.
 - **A voz grátis (`edge`) usa um endpoint não oficial.** Quando a Microsoft muda algo ele responde 403; `pip install -U edge-tts` costuma resolver. Para trabalho real, use `elevenlabs`, `fal` ou a sua gravação.
 - **Cena é código.** O motor entrega as peças, mas o roteiro, o ritmo e o gosto continuam sendo de quem pede e de quem aprova.
 - **Sem interface gráfica:** o fluxo é terminal + o Claude (ou outro agente) escrevendo a cena.
