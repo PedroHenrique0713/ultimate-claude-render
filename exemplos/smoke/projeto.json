@@ -1,0 +1,9 @@
+{
+  "nome": "smoke",
+  "formato": "quadrado",
+  "fps": 24,
+  "duracao": 3,
+  "marca": "../../marcas/exemplo/marca.json",
+  "mix": { "trilha": "sintetica", "bpm": 112, "lufs": -14 },
+  "render": { "dsf": 1, "mb": 1, "procs": 2 }
+}

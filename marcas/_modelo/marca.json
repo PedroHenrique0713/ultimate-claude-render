@@ -1,0 +1,26 @@
+{
+  "nome": "Minha Marca",
+  "url": "minhamarca.com",
+  "logo": "logo.svg",
+  "cores": {
+    "fundo": "#0B0D10",
+    "breu": "#14171B",
+    "texto": "#F2F3F5",
+    "destaque": "#FF7A45",
+    "destaque-claro": "#FFB08C",
+    "acento": "#4FB3FF"
+  },
+  "fonte": {
+    "familia": "Inter",
+    "arquivos": {
+      "400": "fonts/Inter-400-3.woff2",
+      "500": "fonts/Inter-500-4.woff2",
+      "600": "fonts/Inter-600-5.woff2",
+      "700": "fonts/Inter-700-6.woff2",
+      "800": "fonts/Inter-800-7.woff2"
+    }
+  },
+  "fundo": { "aura_b": "#4FB3FF", "vinheta": 0.55 },
+  "legenda": { "tamanho": 60 },
+  "_ajuda": "cores: só fundo, breu, texto e destaque são obrigatórias; o resto é derivado. logo: SVG ou PNG quadrado. fonte: woff2 por peso. celular.moldura: PNG opcional da moldura do aparelho."
+}

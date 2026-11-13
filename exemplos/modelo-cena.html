@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Minha cena</title>
+<link rel="stylesheet" href=".ucr/motor.css">
+<style>
+  /* o CSS da sua cena fica aqui; cores e fonte vêm da marca (var(--destaque), var(--texto), var(--breu)…) */
+</style>
+</head>
+<body>
+<!-- a ordem importa: GSAP → marca → projeto → tema → dados do pipeline → motor -->
+<script src=".ucr/vendor/gsap.min.js"></script>
+<script src=".ucr/marca.js"></script>
+<script src=".ucr/projeto.js"></script>
+<script src=".ucr/tema.js"></script>
+<script src="build/tempos.js"></script>   <!-- a narração no tempo final (gerado por: ucr tempos) -->
+<script src="build/midia.js"></script>    <!-- fotos e vídeos de midia/ (gerado por: ucr midia) -->
+<script src="build/batidas.js"></script>  <!-- batidas da trilha (gerado por: ucr mix) -->
+<script src=".ucr/motor.js"></script>
+<script>
+(async () => {
+  const F = TEMPOS.frases;           // frases da narração: { texto, a, b, palavras: [{ t, a, b }] }
+  const tl = M.tl;                   // a timeline GSAP: o vídeo é uma função de t
+
+  M.fundo();                         // estrelas e auras da marca
+  M.marca();                         // logo e nome no topo
+
+  // Frase grande ancorada na fala. M.T('palavras') devolve o instante em que elas são ditas;
+  // se você trocar o roteiro, a cena acompanha, porque o tempo vem da palavra e não de um número fixo.
+  M.grande('Seu vídeo, em HTML.', { t: F[0].a, fim: F[0].b + .8, y: 760, tam: 124, destaque: ['html'] });
+  M.som(F[0].a, 'impacto', .8);
+
+  M.legendas(F, { chaves: ['vídeo', 'voz', 'legendas', 'trilha', 'roteiro'] });
+  await M.iniciar(TEMPOS.total);
+})();
+</script>
+</body>
+</html>

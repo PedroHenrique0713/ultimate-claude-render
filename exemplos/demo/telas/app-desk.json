@@ -1,0 +1,15 @@
+{
+  "id": "app-desk",
+  "url": "/index.html",
+  "dispositivo": "desk",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "deviceScaleFactor": 2,
+  "pagina": {
+    "w": 1440,
+    "h": 1220
+  },
+  "elementos": {}
+}

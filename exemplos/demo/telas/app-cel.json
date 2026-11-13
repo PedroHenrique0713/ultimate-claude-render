@@ -1,0 +1,17 @@
+{
+  "id": "app-cel",
+  "url": "/index.html",
+  "dispositivo": "cel",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "deviceScaleFactor": 3,
+  "isMobile": true,
+  "hasTouch": true,
+  "pagina": {
+    "w": 390,
+    "h": 915
+  },
+  "elementos": {}
+}

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>ultimate claude render · demo</title>
+<link rel="stylesheet" href=".ucr/motor.css">
+<style>
+  /* chips da linha do tempo da voz */
+  #voz-card { position: absolute; left: 90px; top: 700px; width: 900px; padding: 38px 36px 40px; border-radius: 30px; opacity: 0; }
+  #voz-card .chips { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 30px; }
+  .chip { padding: 16px 24px 14px; border-radius: 18px; background: rgba(238,242,246,.07); border: 1px solid var(--linha); text-align: center; }
+  .chip b { display: block; font-weight: 700; font-size: 40px; letter-spacing: -.03em; }
+  .chip small { display: block; margin-top: 6px; font-size: 19px; font-weight: 500; color: var(--apagado); font-variant-numeric: tabular-nums; }
+  /* mixer */
+  #mix-card { position: absolute; left: 90px; top: 690px; width: 900px; height: 560px; border-radius: 30px; opacity: 0; overflow: hidden; }
+  #mix-card canvas { position: absolute; left: 0; top: 0; }
+  #lufs { position: absolute; left: 0; right: 0; top: 1290px; text-align: center; font-weight: 800; font-size: 120px; letter-spacing: -.05em; font-variant-numeric: tabular-nums; opacity: 0; }
+  #lufs small { font-size: 46px; font-weight: 600; letter-spacing: .02em; color: var(--apagado); margin-left: 14px; }
+  /* plataformas */
+  #plat { position: absolute; left: 0; right: 0; top: 790px; display: flex; justify-content: center; gap: 22px; }
+  #plat .pilula { position: relative; opacity: 0; height: 104px; padding: 0 46px; font-size: 44px; }
+  /* cartão final */
+  #fim { position: absolute; left: 0; right: 0; top: 640px; text-align: center; opacity: 0; }
+  #fim img { width: 230px; height: 230px; display: block; margin: 0 auto; filter: drop-shadow(0 30px 60px rgba(0,0,0,.6)); }
+  #fim h1 { margin-top: 56px; font-weight: 800; font-size: 104px; line-height: 1; letter-spacing: -.05em; }
+  #fim h1 span { display: block; }
+  #fim .url { margin-top: 40px; display: inline-block; padding: 14px 30px; border-radius: 99px; border: 1px solid var(--linha); background: var(--vidro); font-size: 30px; font-weight: 600; color: var(--apagado); }
+  #raios { position: absolute; left: 50%; top: 115px; width: 1100px; height: 1100px; margin: -550px 0 0 -550px; border-radius: 50%; opacity: 0;
+           background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--destaque-claro) 26%, transparent) 0deg 2deg, transparent 2deg 14deg);
+           -webkit-mask: radial-gradient(circle, #000 0%, transparent 62%); mask: radial-gradient(circle, #000 0%, transparent 62%); }
+  .rotulo { position: absolute; }
+</style>
+</head>
+<body>
+<script src=".ucr/vendor/gsap.min.js"></script>
+<script src=".ucr/marca.js"></script>
+<script src=".ucr/projeto.js"></script>
+<script src=".ucr/tema.js"></script>
+<script src="build/tempos.js"></script>
+<script src="build/midia.js"></script>
+<script src="build/batidas.js"></script>
+<script src=".ucr/motor.js"></script>
+<script>
+(async () => {
+  const F = TEMPOS.frases, tl = M.tl, cena = M.cena, el = M.el, px = M.px;
+  const a = (i) => F[i].a, b = (i) => F[i].b;
+  const bat = (t) => M.batida(t);   // puxa o instante para a batida da trilha, se houver uma a menos de 80 ms
+
+  // entrada e saída padrão de um elemento (tudo em função de t)
+  const entrar = (e, t, { y = 70, escala = .96, dur = .62 } = {}) => {
+    tl.set(e, { opacity: 0 }, 0);
+    tl.fromTo(e, { opacity: 0, y, scale: escala }, { opacity: 1, y: 0, scale: 1, duration: dur, ease: 'power3.out', immediateRender: false }, t);
+  };
+  const sair = (e, t, { y = -50, dur = .38 } = {}) => tl.to(e, { opacity: 0, y, duration: dur, ease: 'power2.in' }, t);
+
+  M.fundo();
+
+  // ── 1. o prompt e o pipeline: um terminal que acumula as linhas ──
+  const T1 = M.terminal(cena, { x: 90, y: 690, largura: 900, altura: 640, titulo: 'ucr', linhas: [
+    { t: a(0) + .05, prefixo: '$ ', texto: 'claude "faz um vídeo de lançamento"', vel: 24 },
+    { t: a(1) + .15, texto: '✓ cena.html escrita', classe: 'ok' },
+    { t: a(1) + .75, texto: '  tudo em função do tempo t', classe: 'ap' },
+    { t: a(2) + .05, prefixo: '$ ', texto: 'ucr tudo demo', vel: 20 },
+    { t: M.T('quadro') + .1, texto: '  prep    motor e marca', classe: 'ap' },
+    { t: M.T('página') + .15, texto: `  voz     ${F.length} frases, tempo por palavra`, classe: 'ap' },
+    { t: M.T('verdade') + .1, texto: '  mix     −14 LUFS', classe: 'ap' },
+    { t: M.T('computador') + .05, texto: '  render  1080×1920 · 30 fps', classe: 'ok' },
+  ] });
+  entrar(T1.e, a(0) - .2); M.som(bat(a(0) - .2), 'whoosh', .7);
+  sair(T1.e, a(3) - .2);
+
+  // ── 2. a voz: cada palavra é um chip com o instante real em que é dita ──
+  const vc = el('div', 'vidro', {}, cena); vc.id = 'voz-card';
+  el('div', 'eyebrow', {}, vc).textContent = 'voz · tempo por palavra';
+  const chips = el('div', 'chips', {}, vc);
+  const sobre = getComputedStyle(document.documentElement).getPropertyValue('--sobre-destaque').trim();
+  const cs = F[3].palavras.map((w) => {
+    const c = el('div', 'chip', {}, chips);
+    el('b', '', {}, c).textContent = w.t.replace(/[.,]$/, '');
+    el('small', '', {}, c).textContent = w.a.toFixed(2).replace('.', ',') + ' s';
+    return c;
+  });
+  entrar(vc, a(3) - .25); M.som(bat(a(3) - .25), 'whoosh', .6);
+  F[3].palavras.forEach((w, i) => { tl.to(cs[i], { scale: 1.07, duration: .1, ease: 'power2.out' }, w.a); tl.to(cs[i], { scale: 1, duration: .25, ease: 'power2.inOut' }, w.a + .1);
+    tl.to(cs[i], { backgroundColor: window.COR.destaque, borderColor: 'rgba(0,0,0,0)', color: sobre, duration: .12, ease: 'none' }, w.a); M.som(w.a, 'pop', .22); });
+  sair(vc, b(3) + .45);
+
+  // ── 3. a legenda: contorno na faixa onde ela está ──
+  const ct = el('div', 'contorno', { left: '40px', top: '282px', width: '1000px', height: '326px' }, cena);
+  tl.fromTo(ct, { opacity: 0, scale: 1.05 }, { opacity: 1, scale: 1, duration: .4, ease: 'power3.out', immediateRender: false }, a(4) - .1);
+  tl.to(ct, { scale: 1.012, duration: .9, ease: 'sine.inOut', yoyo: true, repeat: 2 }, a(4) + .4);
+  tl.to(ct, { opacity: 0, duration: .3 }, b(4) + .25);
+  const selo4 = el('div', 'selo', { left: '290px', top: '640px', opacity: 0 }, cena);
+  selo4.textContent = 'palavra por palavra, no instante certo';
+  entrar(selo4, a(4) + .5, { y: 24 }); M.som(a(4) + .5, 'pop', .5); sair(selo4, b(4) + .25, { y: -10 });
+
+  // ── 4. foto no meio ──
+  const foto = M.foto(cena, 'paisagem', { x: 90, y: 700, w: 900, h: 700, raio: 34, de: a(5) - .1, ate: b(6) + .7, zoom: [1, 1.14], deriva: [-36, -14] });
+  M.som(a(5) + .35, 'obturador', .8);
+  const selo5 = el('div', 'selo', { left: '120px', top: '1300px', opacity: 0, zIndex: 5 }, cena);
+  selo5.textContent = 'midia/paisagem.jpg · zoom e deriva';
+  entrar(selo5, a(6) + .1, { y: 20 }); sair(selo5, b(6) + .3, { y: -10 });
+
+  // ── 5. vídeo no meio, com o som dele ──
+  M.video(cena, 'clipe', { x: 90, y: 700, w: 900, h: 700, raio: 34, de: a(7) - .1, ate: b(9) + .8, som: true, ganho: .55 });
+  M.som(bat(a(7) - .1), 'whoosh', .6);
+  const selo6 = el('div', 'selo', { left: '120px', top: '1300px', opacity: 0, zIndex: 5 }, cena);
+  selo6.textContent = 'midia/clipe.mp4 · com áudio no mix';
+  entrar(selo6, a(9) - .1, { y: 20 }); sair(selo6, b(9) + .5, { y: -10 });
+
+  // ── 6. telas reais: celular, depois janela ──
+  const cel = M.celular(cena, { x: 317, y: 596, B: .33 });
+  cel.pagina('telas/app-cel.png');
+  entrar(cel.c, a(10) - .1, { y: 120, escala: .92, dur: .8 }); M.som(bat(a(10) - .1), 'whoosh', .7);
+  const t0 = M.T('celular');
+  const [tx, ty] = [cel.K * 316, cel.STATUS + cel.K * 38];
+  M.tocar(cel, tx, ty, t0 + .55);
+  tl.to(cel.f, { y: -14, duration: 1.2, ease: 'sine.inOut', yoyo: true, repeat: 1 }, a(10));
+  const tj = M.T('janela');
+  tl.to(cel.c, { x: -140, opacity: 0, scale: .92, duration: .5, ease: 'power3.in' }, tj - .35);
+  const jan = M.janela(cena, { x: 60, y: 760, largura: 960, altura: 600, url: 'render.exemplo.com' });
+  jan.pagina('telas/app-desk.png');
+  entrar(jan.j, tj - .1, { y: 90, escala: .94, dur: .75 }); M.som(tj - .1, 'whoosh', .6); M.luz(jan, tj + .3);
+  sair(jan.j, b(10) + .6, { y: -60 });
+
+  // ── 7. o áudio: voz, trilha com ducking e efeitos, desenhados com os dados reais desta narração ──
+  const mc = el('div', 'vidro', {}, cena); mc.id = 'mix-card';
+  const cv = el('canvas', '', {}, mc); cv.width = 900; cv.height = 560;
+  const g = cv.getContext('2d');
+  const palavrasTodas = F.flatMap((f) => f.palavras);
+  const emFala = (t) => { for (const w of palavrasTodas) { if (t >= w.a - .04 && t <= w.b + .04) return 1; } return 0; };
+  const suave = (() => { let cache = new Map(); return (t) => { const k = Math.round(t * 50); if (!cache.has(k)) { let s = 0, n = 0; for (let d = -.18; d <= .18; d += .06) { s += emFala(k / 50 + d); n++; } cache.set(k, s / n); } return cache.get(k); }; })();
+  const lemb = [window.COR.destaque, '#3FD0C9', window.COR.acento];
+  const nomes = ['voz', 'trilha', 'efeitos'];
+  const lufs = el('div', '', {}, cena); lufs.id = 'lufs'; lufs.innerHTML = '−30,0<small>LUFS</small>';
+  const t11a = a(11), t11b = b(11);
+  entrar(mc, t11a - .3, { y: 80 }); M.som(bat(t11a - .3), 'whoosh', .6);
+  entrar(lufs, t11a + .2, { y: 40 });
+  sair(mc, b(11) + .5); sair(lufs, b(11) + .5);
+  M.ATUALIZAR.push((t) => {
+    if (t < t11a - .4 || t > b(11) + 1) return;
+    g.clearRect(0, 0, 900, 560);
+    g.font = '600 24px ' + getComputedStyle(document.body).fontFamily;
+    const JAN = 6;   // segundos visíveis
+    for (let l = 0; l < 3; l++) {
+      const y0 = 40 + l * 170, alt = 130;
+      g.fillStyle = 'rgba(238,242,246,.05)'; g.fillRect(150, y0, 720, alt);
+      g.fillStyle = 'rgba(238,242,246,.6)'; g.fillText(nomes[l], 34, y0 + alt / 2 + 8);
+      g.fillStyle = lemb[l];
+      if (l < 2) {
+        for (let x = 0; x < 720; x += 5) {
+          const ts = t - JAN / 2 + (x / 720) * JAN;
+          const v = suave(ts);
+          const nivel = l === 0 ? v : .62 * (1 - .62 * v);                                  // trilha: cai sob a voz
+          const ruido = .32 + .68 * Math.abs(Math.sin(ts * (l ? 17 : 41)) * Math.sin(ts * (l ? 5.3 : 9.7)));
+          const h = Math.max(3, nivel * ruido * alt * .92);
+          g.globalAlpha = x / 720 < .5 ? 1 : .55; g.fillRect(150 + x, y0 + (alt - h) / 2, 3, h);
+        }
+        g.globalAlpha = 1;
+      } else {
+        for (const s of window.SONS) {
+          const x = 720 * ((s.t - (t - JAN / 2)) / JAN);
+          if (x < 0 || x > 720) continue;
+          g.beginPath(); g.moveTo(150 + x, y0 + alt / 2 - 22); g.lineTo(150 + x + 9, y0 + alt / 2); g.lineTo(150 + x, y0 + alt / 2 + 22); g.lineTo(150 + x - 9, y0 + alt / 2); g.closePath(); g.fill();
+        }
+      }
+    }
+    g.fillStyle = '#fff'; g.fillRect(150 + 360 - 1.5, 30, 3, 520);   // a posição do vídeo agora
+    const k = Math.min(1, Math.max(0, (t - t11a) / Math.max(.5, t11b - t11a - .5)));
+    const v = -30 + 16 * (1 - Math.pow(1 - k, 3));
+    lufs.firstChild.textContent = v.toFixed(1).replace('.', ',').replace('-', '−');
+  });
+  M.som(t11b - .1, 'brilho', .7);
+
+  // ── 8. o relatório de QA ──
+  const T2 = M.terminal(cena, { x: 90, y: 700, largura: 900, altura: 520, titulo: 'ucr qa', linhas: [
+    { t: a(12) - .1, prefixo: '$ ', texto: 'ucr qa demo', vel: 22 },
+    { t: M.T('cor') + .1, texto: 'ok   1080x1920, 30 fps', classe: 'ok' },
+    { t: M.T('cor') + .5, texto: 'ok   cor: yuv420p, BT.709 marcado', classe: 'ok' },
+    { t: M.T('volume') + .1, texto: 'ok   loudness −14,0 LUFS', classe: 'ok' },
+    { t: M.T('parado') - .1, texto: 'ok   nenhum trecho preto', classe: 'ok' },
+  ] });
+  entrar(T2.e, a(12) - .3); M.som(bat(a(12) - .3), 'whoosh', .6);
+  sair(T2.e, b(12) + .5);
+
+  // ── 9. plataformas, marca em um arquivo e a troca de paleta ao vivo ──
+  const plat = el('div', '', {}, cena); plat.id = 'plat';
+  [['Linux', 'linux'], ['macOS', 'mac'], ['Windows', 'windows']].forEach(([nome, palavra], i) => {
+    const p = el('div', 'pilula vidro', {}, plat); p.textContent = nome;
+    const t = M.T(palavra);
+    tl.fromTo(p, { opacity: 0, y: 40, scale: .85 }, { opacity: 1, y: 0, scale: 1, duration: .4, ease: 'back.out(2)', immediateRender: false }, t - .05);
+    M.som(t - .05, 'pop', .6);
+    tl.to(p, { opacity: 0, y: -30, duration: .3, ease: 'power2.in' }, b(13) + .25);
+  });
+  const T3 = M.terminal(cena, { x: 90, y: 700, largura: 900, altura: 470, titulo: 'marca.json', som: false, cursor: false, linhas: [
+    { t: a(14), texto: '{', classe: 'ap' },
+    { t: a(14) + .12, texto: '  "nome": "sua marca",', classe: 'ap' },
+    { t: a(14) + .3, texto: '  "cores": { "destaque": "#C6FF3D" },', classe: 'pr' },
+    { t: a(14) + .5, texto: '  "fonte": { "familia": "Inter" },', classe: 'ap' },
+    { t: a(14) + .7, texto: '  "logo": "logo.svg"', classe: 'ap' },
+    { t: a(14) + .85, texto: '}', classe: 'ap' },
+  ] });
+  entrar(T3.e, a(14) - .25); M.som(bat(a(14) - .25), 'whoosh', .6);
+  sair(T3.e, b(14) - .05, { dur: .3 });
+  // a paleta troca de verdade: a variável CSS --destaque é animada e tudo que a usa acompanha
+  const raiz = document.documentElement;
+  const pal = [['#FF7A45', '#FFB08C'], ['#4FB3FF', '#A5D8FF'], ['#FF5C8A', '#FFB3C8'], ['#C6FF3D', '#E4FF9A']];
+  const q = M.grande('Qualquer vídeo.', { t: a(15) + .08, fim: b(15) + .7, y: 790, tam: 150, destaque: ['vídeo'] });
+  pal.forEach(([c, cl], i) => {
+    const t = a(15) + .12 + i * ((b(15) - a(15) - .1) / pal.length);
+    tl.to(raiz, { '--destaque': c, '--destaque-claro': cl, duration: .35, ease: 'power2.inOut' }, t);
+  });
+  M.som(a(15), 'impacto', .7);
+
+  // ── 10. cartão final ──
+  const raios = el('div', '', {}, cena); raios.id = 'raios';   // atrás do cartão
+  const fim = el('div', '', {}, cena); fim.id = 'fim';
+  const logo = el('img', '', {}, fim); logo.src = window.MARCA.logo;
+  const h1 = el('h1', '', {}, fim); h1.innerHTML = '<span>ultimate</span><span>claude render</span>';
+  const url = el('div', 'url', {}, fim); url.textContent = window.MARCA.url;
+  const tf = a(16) - .1;
+  tl.set(fim, { opacity: 1 }, 0);
+  tl.fromTo(logo, { opacity: 0, scale: .4, rotation: -20 }, { opacity: 1, scale: 1, rotation: 0, duration: .9, ease: 'back.out(1.7)', immediateRender: false }, tf);
+  tl.fromTo(h1.children, { opacity: 0, y: 60 }, { opacity: 1, y: 0, duration: .6, ease: 'power3.out', stagger: .14, immediateRender: false }, tf + .35);
+  tl.fromTo(url, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: .5, ease: 'power3.out', immediateRender: false }, tf + .9);
+  gsap.set([logo, h1.children, url], { opacity: 0 });
+  tl.fromTo(raios, { opacity: 0, scale: .6 }, { opacity: 1, scale: 1, duration: 1.4, ease: 'power2.out', immediateRender: false }, tf);
+  tl.fromTo(raios, { rotation: 0 }, { rotation: 70, duration: TEMPOS.total - tf, ease: 'none', immediateRender: false }, tf);
+  tl.to(logo, { scale: 1.06, duration: 1.5, ease: 'sine.inOut', yoyo: true, repeat: 4 }, tf + 1.1);
+  tl.to(h1, { y: -8, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: 3 }, tf + 1.1);
+  M.som(tf + .05, 'grave', .9); M.som(tf + .05, 'brilho', .6);
+
+  // câmera: a cena inteira balança em 3D (nada fica parado, e é o que dá profundidade aos cartões)
+  tl.fromTo(cena, { rotationY: -3.2 }, { rotationY: 3.2, duration: 2.6, ease: 'sine.inOut', yoyo: true, repeat: Math.ceil(TEMPOS.total / 2.6), immediateRender: false }, 0);
+  tl.fromTo(cena, { rotationX: 1.5 }, { rotationX: -1.5, duration: 3.7, ease: 'sine.inOut', yoyo: true, repeat: Math.ceil(TEMPOS.total / 3.7), immediateRender: false }, 0);
+
+  M.legendas(F, { de: 0, ate: F.length - 2, chaves: ['html', 'voz', 'legenda', 'foto', 'vídeo', 'som', 'telas', 'trilha', 'lufs', 'marca', 'linux', 'mac', 'windows', 'qualquer'] });
+  await M.iniciar(TEMPOS.total);
+})();
+</script>
+</body>
+</html>

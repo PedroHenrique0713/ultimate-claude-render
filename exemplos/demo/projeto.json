@@ -1,0 +1,12 @@
+{
+  "nome": "ultimate-claude-render-demo",
+  "formato": "vertical",
+  "fps": 30,
+  "marca": "../../marcas/exemplo/marca.json",
+  "voz": { "provedor": "edge", "voz": "pt-BR-FranciscaNeural", "velocidade": "+6%" },
+  "inicio": 0.9,
+  "cauda": 3.4,
+  "respiros": { "1": 0.7, "2": 0.4, "4": 0.6, "6": 0.5, "9": 0.6, "10": 0.5, "11": 0.4, "12": 0.5, "15": 0.7 },
+  "mix": { "trilha": "sintetica", "bpm": 112, "lufs": -14 },
+  "render": { "dsf": 1.5, "mb": 4 }
+}

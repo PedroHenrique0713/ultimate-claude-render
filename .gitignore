@@ -1,0 +1,17 @@
+node_modules/
+motor/vendor/
+.ucr/
+__pycache__/
+*.pyc
+
+# projetos de vídeo: cada pessoa mantém os seus fora do repo ou aqui, sem versionar
+projetos/
+
+# o que um projeto gera
+**/build/
+**/saida/
+gasto.json
+gasto.json.lock
+*.log
+.env
+.DS_Store

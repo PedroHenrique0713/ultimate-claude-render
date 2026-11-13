@@ -1,0 +1,25 @@
+{
+  "nome": "ultimate claude render",
+  "url": "github.com/ultimate-claude-render",
+  "logo": "logo.svg",
+  "cores": {
+    "fundo": "#06080B",
+    "breu": "#0E1217",
+    "texto": "#EEF2F6",
+    "destaque": "#C6FF3D",
+    "destaque-claro": "#E4FF9A",
+    "acento": "#FF5C8A"
+  },
+  "fonte": {
+    "familia": "Inter",
+    "arquivos": {
+      "400": "fonts/Inter-400-3.woff2",
+      "500": "fonts/Inter-500-4.woff2",
+      "600": "fonts/Inter-600-5.woff2",
+      "700": "fonts/Inter-700-6.woff2",
+      "800": "fonts/Inter-800-7.woff2"
+    }
+  },
+  "fundo": { "aura_b": "#3FD0C9", "vinheta": 0.6 },
+  "legenda": { "tamanho": 62 }
+}

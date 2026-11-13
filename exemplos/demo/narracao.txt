@@ -1,0 +1,11 @@
+Você descreve o vídeo. O Claude escreve a cena em HTML.
+Cada quadro é uma página, renderizada de verdade, no seu computador.
+A voz entra com o tempo de cada palavra.
+A legenda acende no instante em que a palavra é dita.
+Quer uma foto no meio? É só apontar o arquivo.
+Um vídeo no meio? Também. Com o som dele.
+Telas reais do seu produto viram cena, no celular ou na janela.
+A trilha abaixa sob a voz, os efeitos caem na batida, e o áudio fecha em menos catorze LUFS.
+No fim, um relatório confere a cor, o volume, e se algum quadro ficou parado.
+Linux, Mac e Windows. Uma marca em um arquivo. Qualquer vídeo.
+Ultimate Claude Render.

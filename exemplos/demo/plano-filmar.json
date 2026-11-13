@@ -1,0 +1,7 @@
+{
+  "base": "app",
+  "tomadas": [
+    { "id": "app-cel",  "dispositivo": "cel",  "url": "/index.html", "logado": false, "esperar": 600 },
+    { "id": "app-desk", "dispositivo": "desk", "url": "/index.html", "logado": false, "esperar": 600, "altura": 900 }
+  ]
+}

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>smoke</title>
+<link rel="stylesheet" href=".ucr/motor.css">
+</head>
+<body>
+<!-- cena mínima, sem narração: serve de teste de fumaça em qualquer sistema (ucr tudo exemplos/smoke) -->
+<script src=".ucr/vendor/gsap.min.js"></script>
+<script src=".ucr/marca.js"></script>
+<script src=".ucr/projeto.js"></script>
+<script src=".ucr/tema.js"></script>
+<script src="build/tempos.js"></script>
+<script src="build/midia.js"></script>
+<script src="build/batidas.js"></script>
+<script src=".ucr/motor.js"></script>
+<script>
+(async () => {
+  M.fundo();
+  M.grande('Funciona.', { t: .3, fim: 2.6, y: 340, tam: 150, destaque: ['funciona'] });
+  M.terminal(M.cena, { x: 140, y: 600, largura: 800, altura: 260, titulo: 'ucr', linhas: [
+    { t: .8, prefixo: '$ ', texto: 'ucr tudo exemplos/smoke', vel: 20 },
+    { t: 1.9, texto: '✓ pronto', classe: 'ok' } ] });
+  M.som(.3, 'impacto', .7);
+  await M.iniciar(3);
+})();
+</script>
+</body>
+</html>
