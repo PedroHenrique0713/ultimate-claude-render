@@ -160,13 +160,14 @@ Esse é o relatório real do demo. Na primeira versão ele acusou 38% do vídeo 
 
 | | Linux | macOS | Windows |
 |---|---|---|---|
-| CLI (`ucr`), render, mix, QA | testado | desenhado para rodar | desenhado para rodar |
+| Pipeline completo (voz, mídia, demo) | testado | ainda não | ainda não |
+| `ucr doctor` + render, trilha, mix e QA (CI) | ✓ | ✓ (arm64) | ✓ |
 | Python | `python3` | `python3` | `python` ou `py -3` (o `ucr` acha sozinho) |
 | Caminhos, URLs de arquivo | `path` + `pathToFileURL` | idem | idem |
 | Chromium | cache do Playwright ou `CHROME_PATH` | idem | idem |
 | WebGL (Three.js) | software; `RENDER_GPU=1` usa a placa (Vulkan) | software | software |
 
-Não há script `.sh` no caminho do render: o orquestrador é Node. O fluxo de `.github/workflows/ci.yml` roda `ucr doctor` e um render de fumaça (`exemplos/smoke`, sem voz) nos três sistemas; **ele ainda não rodou**, porque só roda depois do primeiro push. Até lá, só o Linux foi verificado de ponta a ponta (o selo de CI no topo mostra o resultado dos três). A renderização de texto muda um pouco entre sistemas (hinting): o vídeo é o mesmo, o pixel não é.
+Não há script `.sh` no caminho do render: o orquestrador é Node. A cada push, o `.github/workflows/ci.yml` roda `ucr doctor` e um render de fumaça (`exemplos/smoke`: cena, trilha sintetizada, efeitos, mix, render e QA) nos três sistemas. Voz, foto e vídeo inseridos ainda só foram exercitados no Linux. A renderização de texto muda um pouco entre sistemas (hinting): o vídeo é o mesmo, o pixel não é.
 
 ## Comandos
 
